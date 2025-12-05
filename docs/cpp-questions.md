@@ -1,6 +1,124 @@
 # C++ Technical Interview Questions
  
 This page contains scenarios and questions for C++ technical interviews.
+
+## Theoretical Questions
+
+### Junior Level
+
+#### 1. Reference vs Pointer
+**Question:** What is the difference between a pointer and a reference? When would you use one over the other?
+
+**Solution:**
+*   **Nullability:** Pointers can be `nullptr`; references must always be bound to a valid object upon initialization.
+*   **Reassignment:** Pointers can be reassigned to point to different objects; references are bound for their lifetime to the original object.
+*   **Syntax:** Pointers need dereferencing (`*` or `->`); references use object syntax (`.`).
+*   **Usage:** Use references by default for function parameters (pass-by-reference) and when null is not a valid state. Use pointers when you need to represent "optional" objects (can be null), when you need to re-seat the reference, or for pointer arithmetic.
+
+#### 2. `const` usage
+**Question:** Explain the difference between `const int* p`, `int* const p`, and `const int* const p`.
+
+**Solution:**
+*   `const int* p`: Pointer to a **constant integer**. The integer value cannot be changed through this pointer, but the pointer itself can be changed to point elsewhere. (Read backwards: "pointer to int constant").
+*   `int* const p`: **Constant pointer** to an integer. The pointer cannot be changed (cannot point elsewhere), but the integer value it points to can be modified.
+*   `const int* const p`: Constant pointer to a constant integer. Neither the pointer nor the value can be changed.
+
+#### 3. Static Keyword
+**Question:** What does `static` mean in: 
+- a) global scope
+- b) inside a function
+- c) inside a class
+
+**Solution:**
+*   **Global/Namespace Scope:** The variable/function has **internal linkage**. It is only visible within the translation unit (source file) where it is defined.
+*   **Function Scope:** The variable has **static storage duration**. It is initialized only once the first time the function is called and retains its value between function calls.
+*   **Class Scope:** The member belongs to the **class itself**, not to any specific instance (object). There is only one copy of a static member variable shared by all instances.
+
+#### 4. `volatile` Keyword
+**Question:** What does the `volatile` keyword do? Why is it crucial in embedded systems?
+
+**Solution:**
+*   **Meaning:** It tells the compiler that the variable's value may change at any time, outside the control of the code (e.g., by hardware or an ISR).
+*   **Effect:** It prevents the compiler from optimizing reads/writes to that variable (e.g., caching the value in a register). Every access in the code must result in a real memory access.
+*   **Usage:** Essential for:
+    1.  Memory-mapped hardware registers.
+    2.  Global variables shared between an ISR (Interrupt Service Routine) and the main code.
+
+### Mid Level
+
+#### 1. Virtual Functions and VTable
+**Question:** How does dynamic dispatch work in C++? Explain the concept of the VTable.
+
+**Solution:**
+*   **VTable (Virtual Table):** When a class has virtual functions, the compiler creates a static table (VTable) containing function pointers to the virtual functions for that class.
+*   **VPTR (Virtual Pointer):** Each object of that class contains a hidden pointer (VPTR) that points to the VTable of its actual class type.
+*   **Dispatch:** When a virtual function is called through a base pointer/reference, the program follows the object's VPTR to the VTable and looks up the correct function address to call at runtime. This allows the derived class's version to be executed even when accessed via a base interface.
+
+#### 2. RAII and Smart Pointers
+**Question:** Explain `std::unique_ptr` vs `std::shared_ptr`. Why should you generally avoid raw `new`/`delete`?
+
+**Solution:**
+*   **RAII (Resource Acquisition Is Initialization):** A pattern where resource management (memory, locks, handles) is tied to object lifetime. When the object goes out of scope, its destructor releases the resource.
+*   **`std::unique_ptr`:** Represents **exclusive ownership**. It cannot be copied (only moved). It is lightweight and has zero overhead compared to a raw pointer. Use this by default.
+*   **`std::shared_ptr`:** Represents **shared ownership**. It uses reference counting. The resource is deleted only when the last `shared_ptr` pointing to it is destroyed. It has overhead (atomic reference counter).
+*   **Avoiding raw `new`/`delete`:** Manual memory management is error-prone (memory leaks, double frees, exception safety issues). Smart pointers handle cleanup automatically.
+
+#### 3. Move Semantics
+**Question:** What is the difference between `std::move` and `std::copy` (conceptually)? What are rvalues?
+
+**Solution:**
+*   **Move vs Copy:** Copying duplicates the data (expensive deep copy). Moving transfers ownership of the resources (e.g., internal pointers) from one object to another, leaving the source in a valid but unspecified (usually empty) state. This is highly efficient.
+*   **`std::move`:** It is just a cast. It casts an object to an **rvalue reference** (`T&&`), enabling the compiler to select the move constructor or move assignment operator.
+*   **Rvalues:** Temporary objects (e.g., return value of a function, `x + y`, literal `5`) that do not have a persistent name or address identifiable by the programmer. They are candidates for moving.
+
+#### 4. Memory Segments
+**Question:** Where do local variables, global variables, and `new` objects go in memory?
+
+**Solution:**
+*   **Stack:** Local variables, function parameters, return addresses. Managed automatically (LIFO).
+*   **Heap:** Dynamic memory allocated via `new`/`malloc`. Managed manually (or via smart pointers).
+*   **Data Segment:** specific section for initialized global and static variables.
+*   **BSS Segment:** specific section for uninitialized global and static variables (initialized to 0 by default).
+*   **Text/Code Segment:** The executable machine code and constant data (read-only).
+
+### Senior Level
+
+#### 1. Race Conditions & Memory Order
+**Question:** Explain `std::memory_order_acquire` / `release` vs `seq_cst`. When might you need relaxed ordering?
+
+**Solution:**
+*   **`seq_cst` (Sequential Consistency):** The default stronger ordering. Guarantees a total global ordering of all atomic operations. It mimics the behavior where all threads execute instructions one by one in some global interleaving.
+*   **Acquire/Release:** Used for synchronization.
+    *   **Release:** A store operation. Ensures that all memory writes *before* this store are visible to the thread that performs the matching Acquire.
+    *   **Acquire:** A load operation. Ensures that all memory reads *after* this load see the data written before the matching Release.
+    *   *Usage:* Validating that a data structure is fully initialized before another thread reads it (Lock-free structures).
+*   **Relaxed:** No synchronization or ordering guarantees, only atomicity. Used for counters or statistics where order vs other memory operations doesn't matter.
+
+#### 2. ISR Safety
+**Question:** What are the restricted operations inside an Interrupt Service Routine (ISR)?
+
+**Solution:**
+*   **No Blocking:** Cannot use mutexes, semaphores, or sleep functions, as this could deadlock the system or violate real-time constraints.
+*   **No Dynamic Memory:** Avoid `new`/`malloc` as heap allocation is non-deterministic and often not thread-safe/reentrant.
+*   **No I/O:** Avoid `printf` or file I/O (often blocking and slow).
+*   **Speed:** Keep ISRs extremely short. Set a flag or push data to a lock-free queue and defer processing to the main loop `volatile` variables must be used for shared flags.
+
+#### 3. Template Metaprogramming
+**Question:** How can templates be used to reduce runtime overhead? (CRTP pattern).
+
+**Solution:**
+*   **Compile-time Polymorphism:** Unlike virtual functions (runtime dispatch), templates resolve types at compile time.
+*   **CRTP (Curiously Recurring Template Pattern):** A technique where a derived class inherits from a base class template parameterized by the derived class itself: `class Derived : public Base<Derived>`.
+    *   *Benefit:* `Base` can cast `this` to `Derived*` and call `Derived` methods statically. This mimics polymorphism (static interfaces) without the overhead of the vtable/virtual pointers.
+
+#### 4. Object Slicing
+**Question:** What is object slicing and how do you prevent it?
+
+**Solution:**
+*   **Slicing:** Occurs when you assign a derived class *object* to a base class *variable* (by value). The "derived" part of the object (extra member variables) is "sliced off," leaving only the base part.
+*   **Prevention:** Always use pointers or references when dealing with polymorphic objects (`Base*` or `Base&`) so that the full object is preserved. Alternatively, delete copy constructors in base classes intended for polymorphism to prevent accidental slicing.
+
+---
  
 ## Scenario 1: Memory Leak
  
