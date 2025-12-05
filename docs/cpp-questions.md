@@ -61,7 +61,26 @@ void ResourceManager::addResource(int id) {
 }
 ```
 With this change, the `vector` destructor will destroy the `unique_ptr`s, which will call the `Resource` destructor, which will `delete[]` the raw array.
- 
+
+When changing to `std::unique_ptr`, you must iterate over the vector by reference:
+
+```cpp
+for (auto res : resources) 
+{ 
+    // Error: tries to copy unique_ptr
+}
+```    
+
+`std::unique_ptr` cannot be copied. You must iterate by reference:
+
+```cpp
+for (const auto& res : resources) 
+{
+  // Correct: access by reference
+  res->process();
+}
+```
+
 ---
  
 ## Scenario 2: Race Condition
