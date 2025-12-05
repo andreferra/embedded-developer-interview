@@ -45,7 +45,6 @@ class ResourceManager {
 public:
     void addResource(int id);
     void processAll();
-    // TODO: Implement cleanup
     
 private:
     std::vector<Resource*> resources;
@@ -108,6 +107,4 @@ echo ""
 echo "========================================="
 echo "Scenario '$DIR_NAME' created."
 echo "========================================="
-echo "Problem: The ResourceManager creates Resources on the heap but never deletes them."
-echo "Goal: Find and fix the memory leak."
-echo "Location: $(pwd)"
+echo "Scenario ready at: $(pwd)"
