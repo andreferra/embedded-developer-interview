@@ -33,3 +33,19 @@ The scripts are split into categories:
   ```bash
   ./scripts/cpp/setup_race_condition.sh
   ```
+
+### Buffer Overflow Scenario
+- **Script:** `scripts/cpp/setup_buffer_overflow.sh`
+- **Description:** Creates a `cpp-buffer-overflow` project with a classic buffer overflow bug.
+- **Usage:**
+  ```bash
+  ./scripts/cpp/setup_buffer_overflow.sh
+  ```
+
+### Rule of Three Scenario
+- **Script:** `scripts/cpp/setup_rule_of_three.sh`
+- **Description:** Creates a `cpp-rule-of-three` project with a double-free bug caused by missing copy semantics.
+- **Usage:**
+  ```bash
+  ./scripts/cpp/setup_rule_of_three.sh
+  ```

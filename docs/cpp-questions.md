@@ -44,6 +44,14 @@ This page contains scenarios and questions for C++ technical interviews.
     1.  Memory-mapped hardware registers.
     2.  Global variables shared between an ISR (Interrupt Service Routine) and the main code.
 
+#### 5. Struct vs Class
+**Question:** What is the technical difference between a `struct` and a `class` in C++?
+
+**Solution:**
+*   **Default Access:** `struct` members are **public** by default; `class` members are **private** by default.
+*   **Default Inheritance:** `struct` inherits **publicly** by default; `class` inherits **privately** by default.
+*   *Note:* Otherwise they are identical (can have methods, constructors, etc.).
+
 ### Mid Level
 
 #### 1. Virtual Functions and VTable
@@ -80,6 +88,16 @@ This page contains scenarios and questions for C++ technical interviews.
 *   **Data Segment:** specific section for initialized global and static variables.
 *   **BSS Segment:** specific section for uninitialized global and static variables (initialized to 0 by default).
 *   **Text/Code Segment:** The executable machine code and constant data (read-only).
+
+#### 5. Lambdas and Captures
+**Question:** Explain the C++ Lambda syntax `[capture](params){body}`. What is the difference between `[=]` and `[&]`?
+
+**Solution:**
+*   **Syntax:** Defines an anonymous function object (closure).
+*   **Captures:**
+    *   `[=]` (By Value): Copies used variables. Safe for immediate execution.
+    *   `[&]` (By Reference): References variables. Efficient, but **dangerous** if lambda outlives the scope (dangling refs).
+    *   `[x, &y]`: Explicit capture is best practice.
 
 ### Senior Level
 
@@ -282,3 +300,152 @@ void deposit(Account& account, int amount) {
     account.balance += amount; 
 }
 ```
+
+---
+
+## Scenario 3: Buffer Overflow (Junior)
+
+### Setup
+Run the setup script:
+```bash
+./scripts/cpp/setup_buffer_overflow.sh
+```
+This creates a `cpp-buffer-overflow` directory.
+
+### Problem Description
+The application crashes or creates undefined behavior when processing data.
+
+### Exercises
+
+#### 1. Analyze and Fix
+**Question**: Find the bug and fix it.
+
+**Solution**:
+The loop `for (int i = 0; i <= count; ++i)` writes `count + 1` items.
+If `count` is 5, it writes to `buffer[5]` which is out of bounds (size 5 means indices 0-4).
+Also, `count` comes from argument and might be larger than fixed buffer size.
+
+*Modified `main.cpp`:*
+```cpp
+#include <iostream>
+#include <vector>
+
+void processData(int count) {
+    // Fix: Use std::vector instead of fixed-size array
+    std::vector<int> buffer(count);
+    
+    std::cout << "Processing " << count << " items..." << std::endl;
+
+    for (int i = 0; i < count; ++i) { // Fix: Use < instead of <=
+        buffer[i] = i * 10;
+        std::cout << "Writing to index " << i << ": " << buffer[i] << std::endl;
+    }
+}
+
+int main() {
+    std::cout << "Starting application..." << std::endl;
+    processData(6); 
+    std::cout << "Finished successfully." << std::endl;
+    return 0;
+}
+```
+
+---
+
+## Scenario 4: Rule of Three / Double Free (Mid)
+
+### Setup
+Run the setup script:
+```bash
+./scripts/cpp/setup_rule_of_three.sh
+```
+This creates a `cpp-rule-of-three` directory.
+
+### Problem Description
+The application crashes with a "double free" or memory corruption error when adding strings to a vector.
+
+### Exercises
+
+#### 1. Explain the Crash
+**Question**: Why does it crash?
+
+**Solution**:
+`MyString` manages a raw pointer `char* data` but does not implement a Copy Constructor. The default copy constructor performs a **shallow copy** (copies the pointer value).
+When `MyString` objects are copied (e.g., into `std::vector` or during resize), multiple objects point to the same memory. When they are destroyed, `delete[] data` is called multiple times on the same address.
+
+#### 2. Fix it
+**Question**: Fix the class to be safe.
+
+**Solution**:
+Implement the **Rule of Three**: Copy Constructor, Assignment Operator, and Destructor.
+
+*Modified `main.cpp`:*
+```cpp
+#include <iostream>
+#include <cstring>
+#include <vector>
+
+class MyString {
+public:
+    MyString(const char* str) {
+        if (str) {
+            size = std::strlen(str);
+            data = new char[size + 1];
+            std::strcpy(data, str);
+        } else {
+            size = 0;
+            data = new char[1];
+            data[0] = '\0';
+        }
+        std::cout << "Constructed: " << data << std::endl;
+    }
+
+    // Copy Constructor (Deep Copy)
+    MyString(const MyString& other) {
+        size = other.size;
+        data = new char[size + 1];
+        std::strcpy(data, other.data);
+        std::cout << "Copy constructed: " << data << std::endl;
+    }
+
+    // Assignment Operator
+    MyString& operator=(const MyString& other) {
+        if (this != &other) { // Self-assignment check
+            delete[] data; // Release old memory
+            size = other.size;
+            data = new char[size + 1];
+            std::strcpy(data, other.data);
+        }
+        std::cout << "Assigned: " << data << std::endl;
+        return *this;
+    }
+
+    ~MyString() {
+        std::cout << "Destructing: " << (data ? data : "null") << std::endl;
+        delete[] data;
+    }
+
+    void print() const {
+        std::cout << data << std::endl;
+    }
+
+private:
+    char* data;
+    size_t size;
+};
+
+int main() {
+    std::vector<MyString> strings;
+    
+    std::cout << "Pushing first string..." << std::endl;
+    strings.push_back(MyString("Hello"));
+
+    std::cout << "Pushing second string..." << std::endl;
+    strings.push_back(MyString("World"));
+
+    std::cout << "Exiting main..." << std::endl;
+    return 0;
+}
+```
+
+*Better Fix (Modern C++)*: Use `std::string` or `std::unique_ptr` to manage resources automatically (Rule of Zero).
