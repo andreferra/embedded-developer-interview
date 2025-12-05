@@ -3,7 +3,7 @@
 The scripts are split into categories:
 
 - `git`: Scripts for git questions.
-- `cmake`: Scripts for cmake questions (Placeholder for future).
+- `cmake`: Scripts for cmake questions.
 - `cpp`: Scripts for C++ questions.
 
 ## Git
