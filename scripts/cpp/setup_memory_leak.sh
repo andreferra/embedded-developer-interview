@@ -38,14 +38,14 @@ public:
 
 private:
     int id;
-    int* data; 
+    int* data;
 };
 
 class ResourceManager {
 public:
     void addResource(int id);
     void processAll();
-    
+
 private:
     std::vector<Resource*> resources;
 };

@@ -30,9 +30,3 @@ The scripts are splitted in categories:
 - `cpp`: Scripts for cpp questions.
 
 You can find more information about the specific scripts [here](scripts.md).
-
-
-
-
-
-

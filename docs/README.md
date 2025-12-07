@@ -10,4 +10,3 @@ In this guide you will find scripts to help you prepare for your interview, both
 - [Git Questions](git-questions.md)
 - [C++ Questions](cpp-questions.md)
 - [CMake Questions](cmake-questions.md)
-

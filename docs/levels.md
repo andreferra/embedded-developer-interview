@@ -37,6 +37,7 @@ Focus: Basic syntax, standard definitions, basic git usage, and simple debugging
         - [ ] Suggests `std::vector` or correct bounds check as fix
 
 ### Git
+*Setup script:* `scripts/git/setup_git_junior.sh`
 *   **Basics**
     *   [View History](git-questions.md?id=_1-view-the-commit-history)
         - [ ] Uses `git log` (or equivalent)
@@ -47,6 +48,10 @@ Focus: Basic syntax, standard definitions, basic git usage, and simple debugging
         - [ ] Commits with message (`git commit -m`)
     *   [View Diffs](git-questions.md?id=_7-view-the-difference-between-commits)
         - [ ] Uses `git diff` correctly
+    *   [Merge Branch with Merge Commit](git-questions.md?id=_11-merge-feature-branch-without-fast-forward)
+        - [ ] Switches back to `main`
+        - [ ] Uses `git merge --no-ff` (records merge commit)
+*Rubric:* Strong juniors narrate each Git step, keep commits scoped, and review diffs before merging. Watch for copy-pasting commands without understanding flags or merging fast-forward by accident.
 
 ### CMake
 *   **Basics**
@@ -83,11 +88,11 @@ Focus: Memory management, object lifecycles, history manipulation, and modularit
         - [ ] Distinguishes Move (transfer) vs Copy (duplicate)
         - [ ] Explains `std::move` (cast to rvalue reference)
         - [ ] Mentions efficiency (stealing resources)
-*   **Memory Layout**
-    *   [Stack vs Heap vs Data](cpp-questions.md?id=_4-memory-segments)
-        - [ ] Stack: Local vars, automatic
-        - [ ] Heap: Dynamic `new`/`malloc`
-        - [ ] Data/BSS: Global/Static initialized/uninitialized
+*   **Containers**
+    *   [Vector reserve vs resize](cpp-questions.md?id=_4-stdvectorreserve-vs-resize)
+        - [ ] Knows `reserve` grows capacity only
+        - [ ] Knows `resize` changes size and constructs/destroys elements
+        - [ ] Avoids writing past `size()` after only reserving
 *   **Modern Features**
     *   [Lambdas](cpp-questions.md?id=_5-lambdas-and-captures)
         - [ ] Explains syntax `[](){}`
@@ -107,6 +112,7 @@ Focus: Memory management, object lifecycles, history manipulation, and modularit
         - [ ] Implements Destructor
 
 ### Git
+*Setup script:* `scripts/git/setup_git_mid.sh`
 *   **History Editing**
     *   [Fixing Typo (Interactive Rebase)](git-questions.md?id=_2-fix-the-typo-in-commit-4)
         - [ ] Uses `git rebase -i`
@@ -118,6 +124,7 @@ Focus: Memory management, object lifecycles, history manipulation, and modularit
         - [ ] Uses `git stash` to save local changes
         - [ ] Switches branches back and forth
         - [ ] Uses `git stash pop` to restore
+*Rubric:* Strong mid-level candidates explain why they choose rebase vs merge, clean up commit messages, and protect work with stash/backup branches. Risk signals include force-pushing without explanation or leaving TODOs unresolved after rebases.
 
 ### CMake
 *   **Dependency Management**
@@ -143,12 +150,11 @@ Focus: Concurrency, system design impact, advanced git flows, and compiler/optim
         - [ ] Sequential Consistency (Global order)
         - [ ] Acquire/Release (Synchronizes-with relation)
         - [ ] Relaxed (Atomicity only, no ordering)
-*   **System Constraints**
-    *   [ISR Safety](cpp-questions.md?id=_2-isr-safety)
-        - [ ] No Blocking (Mutex, Sleep)
-        - [ ] No Allocation (new/malloc)
-        - [ ] No I/O (printf)
-        - [ ] Keep it short (defer processing)
+*   **Compile-time Computation**
+    *   [`constexpr` vs `const` vs `consteval`](cpp-questions.md?id=_2-constexpr-vs-const-vs-consteval)
+        - [ ] Distinguishes runtime `const` from compile-time `constexpr`
+        - [ ] Explains when `consteval` is mandatory
+        - [ ] Understands when evaluations occur at compile time vs runtime
 *   **Advanced Templates**
     *   [Template Metaprogramming / CRTP](cpp-questions.md?id=_3-template-metaprogramming)
         - [ ] Explains Compile-time Polymorphism
@@ -165,14 +171,26 @@ Focus: Concurrency, system design impact, advanced git flows, and compiler/optim
         - [ ] OR Fixes using `std::atomic` (if applicable)
 
 ### Git
+*Setup script:* `scripts/git/setup_git_senior.sh`
 *   **Advanced Operations**
     *   [Squashing Commits](git-questions.md?id=_6-squash-the-last-2-commits-on-main)
         - [ ] Uses `rebase -i`
         - [ ] Uses `squash` (or `fixup`) to combine commits
     *   [Cherry-picking](git-questions.md?id=_8-cherry-pick-a-specific-commit)
         - [ ] Successfully cherry-picked specific hash
+    *   [Cherry-pick Audit Log Commit](git-questions.md?id=_12-cherry-pick-the-audit-logging-commit)
+        - [ ] Targets `feature/audit-log` branch or hash
+        - [ ] Applies onto `main` without merging whole branch
 *   **Conflict Resolution**
     *   [Resolving Merge Conflicts](git-questions.md?id=_9-resolve-a-merge-conflict)
         - [ ] Identifies conflict markers
         - [ ] Manually edits code to resolve logic
         - [ ] Completes merge commit
+*   **Troubleshooting**
+    *   [Recover from Failed Rebase](git-questions.md?id=_13-recover-from-a-failed-rebase)
+        - [ ] Uses `git rebase --abort` or reflog appropriately
+        - [ ] Explains state cleanup before retrying
+    *   [Reset Branch to Remote](git-questions.md?id=_14-reset-main-to-match-origin)
+        - [ ] Fetches before resetting
+        - [ ] Mentions safeguarding local work (stash/backup) before `reset --hard`
+*Rubric:* Strong seniors verbalize the impact of history rewrites, use reflog/backups before destructive commands, and document fixes in release notes. Red flags include hard resets without backups, confusion about detached HEAD during recovery, or skipping verification after conflict resolution.

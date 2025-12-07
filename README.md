@@ -23,3 +23,35 @@ The project offers resources for both interviewers and candidates, covering theo
 ## Usage
 
 To start running the scripts or preparing the environment, read the [Setup Guide](docs/setup.md).
+
+## Git Interview Playgrounds
+
+Use the level-specific Git scripts under `scripts/git/` to spin up repositories that match the candidate's seniority:
+
+- `setup_git_junior.sh` – creates `git-playground-junior` with a short commit history suited for basic log/branch/diff drills.
+- `setup_git_mid.sh` – provisions `git-playground-mid`, complete with a `feature/division` branch, commit-message typo, and unstaged docs edits that encourage interactive rebases and stashing.
+- `setup_git_senior.sh` – builds `git-playground-senior`, featuring tagged releases, cherry-pick targets on `feature/audit-log`, and merge conflicts on `feature/conflict`.
+
+Run any script with `./scripts/git/<script-name> [custom-directory]` to override the destination folder.
+
+## Verifying Scripts
+
+Run the automated smoke suite to make sure every setup script still works after making changes:
+
+```bash
+npm run smoke
+```
+
+The command generates each playground inside temporary directories, checks that the expected Git repositories exist, and then cleans up automatically.
+
+## Local Checks
+
+Install [pre-commit](https://pre-commit.com/) and enable the hooks to catch whitespace, YAML/JSON formatting, and large files before committing:
+
+```bash
+pip install pre-commit  # or brew install pre-commit
+pre-commit install
+pre-commit run --all-files
+```
+
+The configuration lives in `.pre-commit-config.yaml`.

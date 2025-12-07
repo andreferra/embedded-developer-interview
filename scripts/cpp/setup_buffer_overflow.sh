@@ -29,8 +29,8 @@ cat > main.cpp << 'EOF'
 #include <iostream>
 
 void processData(int count) {
-    int buffer[5]; 
-    
+    int buffer[5];
+
     std::cout << "Processing " << count << " items..." << std::endl;
 
     for (int i = 0; i <= count; ++i) {
@@ -41,7 +41,7 @@ void processData(int count) {
 
 int main() {
     std::cout << "Starting application..." << std::endl;
-    processData(6); 
+    processData(6);
     std::cout << "Finished successfully (if you see this, you might have got lucky)." << std::endl;
     return 0;
 }

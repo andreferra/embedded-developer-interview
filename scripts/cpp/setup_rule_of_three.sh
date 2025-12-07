@@ -61,12 +61,12 @@ private:
 
 int main() {
     std::vector<MyString> strings;
-    
+
     std::cout << "Pushing first string..." << std::endl;
     strings.push_back(MyString("Hello")); // Temporary created, then copied into vector
 
     std::cout << "Pushing second string..." << std::endl;
-    strings.push_back(MyString("World")); 
+    strings.push_back(MyString("World"));
     std::cout << "Exiting main..." << std::endl;
     return 0;
 }
