@@ -1,5 +1,5 @@
 # C++ Technical Interview Questions
- 
+
 This page contains scenarios and questions for C++ technical interviews.
 
 ## Theoretical Questions
@@ -24,7 +24,7 @@ This page contains scenarios and questions for C++ technical interviews.
 *   `const int* const p`: Constant pointer to a constant integer. Neither the pointer nor the value can be changed.
 
 #### 3. Static Keyword
-**Question:** What does `static` mean in: 
+**Question:** What does `static` mean in:
 - a) global scope
 - b) inside a function
 - c) inside a class
@@ -79,15 +79,13 @@ This page contains scenarios and questions for C++ technical interviews.
 *   **`std::move`:** It is just a cast. It casts an object to an **rvalue reference** (`T&&`), enabling the compiler to select the move constructor or move assignment operator.
 *   **Rvalues:** Temporary objects (e.g., return value of a function, `x + y`, literal `5`) that do not have a persistent name or address identifiable by the programmer. They are candidates for moving.
 
-#### 4. Memory Segments
-**Question:** Where do local variables, global variables, and `new` objects go in memory?
+#### 4. `std::vector::reserve` vs `resize`
+**Question:** What is the difference between calling `reserve(n)` and `resize(n)` on a `std::vector`? When would you choose each?
 
 **Solution:**
-*   **Stack:** Local variables, function parameters, return addresses. Managed automatically (LIFO).
-*   **Heap:** Dynamic memory allocated via `new`/`malloc`. Managed manually (or via smart pointers).
-*   **Data Segment:** specific section for initialized global and static variables.
-*   **BSS Segment:** specific section for uninitialized global and static variables (initialized to 0 by default).
-*   **Text/Code Segment:** The executable machine code and constant data (read-only).
+*   **`reserve(n)`** only adjusts the *capacity*. It allocates space for at least `n` elements but does **not** change the current size and does not value-initialize elements. Use it before a known bulk insertion to avoid repeated reallocations.
+*   **`resize(n)`** changes the *size*. If `n` is larger than the current size, new elements are value-initialized (calls default constructor). If `n` is smaller, elements are destroyed. Use it when you actually want the vector to contain exactly `n` elements.
+*   **Common Pitfall:** Using `reserve` and then writing to `vec[i]` for `i` beyond the original size is UB because the size never changed. You must either `resize` first or insert via `push_back`/`emplace_back`.
 
 #### 5. Lambdas and Captures
 **Question:** Explain the C++ Lambda syntax `[capture](params){body}`. What is the difference between `[=]` and `[&]`?
@@ -112,14 +110,14 @@ This page contains scenarios and questions for C++ technical interviews.
     *   *Usage:* Validating that a data structure is fully initialized before another thread reads it (Lock-free structures).
 *   **Relaxed:** No synchronization or ordering guarantees, only atomicity. Used for counters or statistics where order vs other memory operations doesn't matter.
 
-#### 2. ISR Safety
-**Question:** What are the restricted operations inside an Interrupt Service Routine (ISR)?
+#### 2. `constexpr` vs `const` vs `consteval`
+**Question:** Explain the difference between declaring something `const`, `constexpr`, or `consteval`. How do they influence compile-time evaluation?
 
 **Solution:**
-*   **No Blocking:** Cannot use mutexes, semaphores, or sleep functions, as this could deadlock the system or violate real-time constraints.
-*   **No Dynamic Memory:** Avoid `new`/`malloc` as heap allocation is non-deterministic and often not thread-safe/reentrant.
-*   **No I/O:** Avoid `printf` or file I/O (often blocking and slow).
-*   **Speed:** Keep ISRs extremely short. Set a flag or push data to a lock-free queue and defer processing to the main loop `volatile` variables must be used for shared flags.
+*   **`const`** means “read-only after initialization” but the initializer can run at runtime. A `const` global has static storage duration but may still be computed at startup.
+*   **`constexpr`** requires the initializer (for variables) or the function body (for functions) to be usable in constant expressions. If provided with compile-time arguments, the compiler must evaluate it at compile time; if not, it can still run at runtime.
+*   **`consteval`** (C++20) means the function **must** be evaluated at compile time; calling it with runtime values is ill-formed. Use it for generating lookup tables or enforcing that certain APIs are pure compile-time.
+*   **Rule of Thumb:** Use `constexpr` for values/functions that *can* be evaluated at compile time and benefit from folding, `consteval` for values that *must* exist at compile time (e.g., fixed-size array extents), and plain `const` for runtime constants such as configuration parameters.
 
 #### 3. Template Metaprogramming
 **Question:** How can templates be used to reduce runtime overhead? (CRTP pattern).
@@ -137,9 +135,9 @@ This page contains scenarios and questions for C++ technical interviews.
 *   **Prevention:** Always use pointers or references when dealing with polymorphic objects (`Base*` or `Base&`) so that the full object is preserved. Alternatively, delete copy constructors in base classes intended for polymorphism to prevent accidental slicing.
 
 ---
- 
+
 ## Scenario 1: Memory Leak
- 
+
 ### Setup
 Run the setup script:
 ```bash
@@ -166,30 +164,30 @@ This creates a `cpp-memory-leak` directory with a CMake project.
 
 ### Problem Description
 The `ResourceManager` class manages a collection of `Resource` objects. However, after running the simulation, it seems that memory is not being released correctly.
- 
+
 ### Exercises
- 
+
 #### 1. Identify the Leak
 **Question:** Run the program (or use Valgrind/ASan if available) and inspect the code to identify why memory is leaking.
- 
+
 **Solution:**
 The `ResourceManager::addResource` method uses `new` to allocate `Resource` objects and stores pointers in a `std::vector<Resource*>`. However, `ResourceManager` does not have a destructor that deletes these pointers.
 Additionally, `Resource` allocates an array `data = new int[100]` but the destructor `delete[] data` is never called because the `Resource` objects themselves are never deleted.
- 
+
 #### 2. Fix the Leak (Modern C++)
 **Question:** Refactor the code to use smart pointers (`std::unique_ptr` or `std::shared_ptr`) to automatically manage the memory.
- 
+
 **Solution:**
 Change `std::vector<Resource*> resources` to `std::vector<std::unique_ptr<Resource>> resources`.
 Update `addResource` to use `std::make_unique`.
- 
+
 *Modified `resource.h`:*
 ```cpp
 #include <memory>
 // ...
 std::vector<std::unique_ptr<Resource>> resources;
 ```
- 
+
 *Modified `resource.cpp`:*
 ```cpp
 void ResourceManager::addResource(int id) {
@@ -201,16 +199,16 @@ With this change, the `vector` destructor will destroy the `unique_ptr`s, which 
 When changing to `std::unique_ptr`, you must iterate over the vector by reference:
 
 ```cpp
-for (auto res : resources) 
-{ 
+for (auto res : resources)
+{
     // Error: tries to copy unique_ptr
 }
-```    
+```
 
 `std::unique_ptr` cannot be copied. You must iterate by reference:
 
 ```cpp
-for (const auto& res : resources) 
+for (const auto& res : resources)
 {
   // Correct: access by reference
   res->process();
@@ -218,9 +216,9 @@ for (const auto& res : resources)
 ```
 
 ---
- 
+
 ## Scenario 2: Race Condition
- 
+
 ### Setup
 Run the setup script:
 ```bash
@@ -247,57 +245,57 @@ This creates a `cpp-race-condition` directory.
 
 ### Problem Description
 The program simulates multiple threads depositing money into a single bank account. However, the final balance is often incorrect (less than expected).
- 
+
 ### Exercises
- 
+
 #### 1. Explain the Race Condition
 **Question:** Why is the final balance incorrect?
- 
+
 **Solution:**
 The operation `account.balance = current + amount;` (and the read before it) is not atomic. Multiple threads read the same `current` value, add to it, and write back, overwriting each other's updates. This is a classic "read-modify-write" race condition.
- 
+
 #### 2. Fix with Mutex
 **Question:** Fix the race condition using `std::mutex`.
- 
+
 **Solution:**
 Add a `std::mutex` to the `Account` struct (or global) and lock it during the critical section.
- 
+
 ```cpp
 #include <mutex>
- 
+
 struct Account {
     int balance = 0;
     std::mutex mtx; // Add mutex
 };
- 
+
 void deposit(Account& account, int amount) {
     std::lock_guard<std::mutex> lock(account.mtx); // Lock
     int current = account.balance;
-    std::this_thread::sleep_for(std::chrono::milliseconds(1)); 
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
     account.balance = current + amount;
 }
 // Note: thread creation loop needs to pass ref properly if mutex is not movable/copyable
 ```
- 
+
 #### 3. Fix with Atomics
 **Question:** Fix the race condition using `std::atomic` (if the logic allows simple addition).
- 
+
 **Solution:**
 Change `int balance` to `std::atomic<int> balance`.
- 
+
 ```cpp
 #include <atomic>
- 
+
 struct Account {
     std::atomic<int> balance{0};
 };
- 
+
 void deposit(Account& account, int amount) {
     // No mutex needed for simple addition, assuming logic is just + amount
     // The previous "read, sleep, write" logic was artificial to force the race.
-    // If we keep the logic structure strict, we need mutex. 
+    // If we keep the logic structure strict, we need mutex.
     // If we just want "atomic add":
-    account.balance += amount; 
+    account.balance += amount;
 }
 ```
 
@@ -333,7 +331,7 @@ Also, `count` comes from argument and might be larger than fixed buffer size.
 void processData(int count) {
     // Fix: Use std::vector instead of fixed-size array
     std::vector<int> buffer(count);
-    
+
     std::cout << "Processing " << count << " items..." << std::endl;
 
     for (int i = 0; i < count; ++i) { // Fix: Use < instead of <=
@@ -344,7 +342,7 @@ void processData(int count) {
 
 int main() {
     std::cout << "Starting application..." << std::endl;
-    processData(6); 
+    processData(6);
     std::cout << "Finished successfully." << std::endl;
     return 0;
 }
@@ -436,7 +434,7 @@ private:
 
 int main() {
     std::vector<MyString> strings;
-    
+
     std::cout << "Pushing first string..." << std::endl;
     strings.push_back(MyString("Hello"));
 

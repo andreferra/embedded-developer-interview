@@ -41,14 +41,14 @@ struct Account {
 void deposit(Account& account, int amount) {
     // Processing...
     int current = account.balance;
-    std::this_thread::sleep_for(std::chrono::milliseconds(1)); 
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
     account.balance = current + amount;
 }
 
 int main() {
     Account myAccount;
     std::vector<std::thread> threads;
-    
+
     std::cout << "Starting balance: " << myAccount.balance << std::endl;
 
     // Launch 100 threads, each depositing 10

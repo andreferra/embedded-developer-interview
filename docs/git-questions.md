@@ -3,7 +3,13 @@
 This file contains the questions and solutions for the Git technical interview.
 
 ## Setup
-The candidate should have run the `scripts/git/setup_interview_repo.sh` script which creates the `cpp-interview-practice` repository.
+Run the Git setup script that matches the candidate's level:
+
+- **Junior:** `scripts/git/setup_git_junior.sh` → creates `git-playground-junior`
+- **Mid:** `scripts/git/setup_git_mid.sh` → creates `git-playground-mid`
+- **Senior:** `scripts/git/setup_git_senior.sh` → creates `git-playground-senior`
+
+For a generalized all-in-one repo you can still use `scripts/git/setup_interview_repo.sh`, which creates the `cpp-interview-practice` repository.
 
 <div style="
     background: #ffffff;
@@ -18,11 +24,12 @@ The candidate should have run the `scripts/git/setup_interview_repo.sh` script w
         📝 Note
     </p>
     <p style="margin: 8px 0 0; color: #6b7280; font-size: 14px; line-height: 1.7;">
-        The setup script creates a repository with:
+        Each level-specific script seeds its repository with targeted Git scenarios:
     </p>
     <ul style="margin: 10px 0 0 0; padding-left: 20px; color: #6b7280; font-size: 14px; line-height: 1.8;">
-        <li>A commit history with an intentional typo in a commit message.</li>
-        <li>A branch <code style="background: #f3f4f6; padding: 2px 6px; border-radius: 3px; font-size: 13px; color: #4b5563;">feature/conflict</code> configured to cause a merge conflict.</li>
+        <li><strong>Junior</strong>: short history that encourages branching, simple commits, and diff reviews.</li>
+        <li><strong>Mid</strong>: includes an intentional commit-message typo plus a `feature/division` branch ready for rebasing and stashing practice.</li>
+        <li><strong>Senior</strong>: provides an `feature/audit-log` cherry-pick target and a `feature/conflict` branch that triggers a merge conflict.</li>
     </ul>
 </div>
 
@@ -142,4 +149,47 @@ git checkout feature/division
 # ... do stuff ...
 git checkout main
 git stash pop
+```
+
+### 11. Merge feature branch without fast-forward
+**Question:** Working inside `git-playground-junior`, you finished the `feature/multiply` branch and want the history to show an explicit merge commit. Merge the branch back into `main` without fast-forwarding.
+</br>
+**Solution:**
+```bash
+git checkout main
+git merge --no-ff feature/multiply -m "Merge feature/multiply with multiply support"
+```
+
+### 12. Cherry-pick the audit logging commit
+**Question:** In `git-playground-senior`, apply the audit logging change from the `feature/audit-log` branch onto `main` without merging the whole branch.
+</br>
+**Solution:**
+```bash
+git checkout main
+git cherry-pick feature/audit-log
+# Alternatively cherry-pick the specific hash shown by `git log feature/audit-log -1 --oneline`
+```
+
+### 13. Recover from a failed rebase
+**Question:** While rebasing `feature/conflict` from `git-playground-senior` onto `main`, you hit a conflict in `src/calculator.cpp` and decide to abandon the attempt. Reset the repository back to the pre-rebase state.
+</br>
+**Solution:**
+```bash
+# If Git is still in the rebase state:
+git rebase --abort
+
+# If you already resolved conflicts but want to rewind further:
+git reflog
+git reset --hard HEAD@{1}   # pick the reflog entry prior to the rebase
+```
+
+### 14. Reset main to match origin
+**Question:** In `git-playground-senior`, assume `main` has diverged locally and you need to force it to match `origin/main` (e.g., before restarting the merge exercises). How do you safely reset the branch?
+</br>
+**Solution:**
+```bash
+git fetch origin
+git checkout main
+git reset --hard origin/main
+# If you had local work you care about, capture it first with `git branch backup/main-backup` or `git stash`
 ```

@@ -5,3 +5,4 @@ build
 cpp-*
 cmake-challenge
 !docs/cpp-questions.md
+node_modules

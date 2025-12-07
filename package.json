@@ -1,0 +1,25 @@
+{
+  "name": "embedded-cpp-interview-guide",
+  "version": "1.0.0",
+  "description": "Interactive guide and scripts for Embedded C++ technical interviews",
+  "scripts": {
+    "dev": "docsify serve docs",
+    "start": "docsify serve docs",
+    "init": "docsify init ./docs",
+    "smoke": "bash scripts/run_smoke_tests.sh"
+  },
+  "keywords": [
+    "cpp",
+    "interview",
+    "embedded",
+    "docsify"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "docsify-cli": "^4.4.4"
+  },
+  "dependencies": {
+    "docsify-interactive-checkboxes": "^2.0.2"
+  }
+}
