@@ -27,16 +27,13 @@ EOF
 
 cat > main.cpp << 'EOF'
 #include <iostream>
-#include <vector>
-#include <numeric>
 
 void processData(int count) {
-    // Junior Mistake: Fixed size buffer for dynamic input
     int buffer[5]; 
     
     std::cout << "Processing " << count << " items..." << std::endl;
 
-    for (int i = 0; i <= count; ++i) { // Bug: <= count might be > 4, also off-by-one if count is 5
+    for (int i = 0; i <= count; ++i) {
         buffer[i] = i * 10;
         std::cout << "Writing to index " << i << ": " << buffer[i] << std::endl;
     }
@@ -44,7 +41,6 @@ void processData(int count) {
 
 int main() {
     std::cout << "Starting application..." << std::endl;
-    // Scenario: We receive 6 items, but buffer is size 5.
     processData(6); 
     std::cout << "Finished successfully (if you see this, you might have got lucky)." << std::endl;
     return 0;
