@@ -9,3 +9,11 @@ repos:
         args: ["--allow-multiple-documents"]
       - id: pretty-format-json
         args: ["--no-sort-keys", "--autofix"]
+  - repo: local
+    hooks:
+      - id: include-what-you-use
+        name: include-what-you-use
+        entry: scripts/run_iwyu.sh
+        language: script
+        files: \.(c|cc|cpp|cxx|h|hh|hpp|hxx)$
+        pass_filenames: true

@@ -54,4 +54,7 @@ pre-commit install
 pre-commit run --all-files
 ```
 
-The configuration lives in `.pre-commit-config.yaml`.
+The configuration lives in `.pre-commit-config.yaml`. Some hooks (like `include-what-you-use`) require extra tooling:
+
+- Install IWYU: `brew install include-what-you-use` or `pip install include-what-you-use`.
+- Generate `build/compile_commands.json` once via `cmake -S . -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON` so the hook knows how to compile C++ files.
